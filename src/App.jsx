@@ -6,7 +6,9 @@ export default function App() {
   const [phone, setPhone] = useState("");
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
-  const [km, setKm] = useState("");
+  const [distanceKm, setDistanceKm] = useState(null);
+  const [loadingDistance, setLoadingDistance] = useState(false);
+
 
   const cities = [
     "Rewa","Mangawan","Gangev","Garh","Katra","Sohagi","Chakghat","Teonthar",
@@ -16,8 +18,37 @@ export default function App() {
     "Bhopal","Indore"
   ];
 
-  const fare = km ? km * 2 : 0;
+  const fare = distanceKm ? distanceKm * 2 : 0;
 
+  const fetchDistance = async (from, to) => {
+  if (!from || !to || from === to) return;
+
+  setLoadingDistance(true);
+  setDistanceKm(null);
+
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${from}&destinations=${to}&units=metric&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
+    );
+
+    const data = await res.json();
+
+    const meters =
+      data.rows?.[0]?.elements?.[0]?.distance?.value;
+
+    if (meters) {
+      setDistanceKm((meters / 1000).toFixed(1));
+    } else {
+      alert("Unable to calculate distance");
+    }
+  } catch (err) {
+    alert("Google Maps error");
+  }
+
+  setLoadingDistance(false);
+};
+
+  
   const submitBooking = () => {
     if (name.length < 3 || !/^[a-zA-Z ]+$/.test(name)) {
       alert("Please enter a valid name (min 3 letters)");
@@ -27,14 +58,16 @@ export default function App() {
       alert("Please enter a valid 10-digit phone number");
       return;
     }
-    if (!source || !destination || !km) {
+    if (!source || !destination || !distanceKm) {
       alert("Please fill all booking details");
       return;
     }
 
     const message = `
-Hello Ralhi Travels,
-I want to book a Luxury Bus.
+Namaste Ralhi Travels!
+I would like to book a seat on a luxury bus.
+
+Details:
 
 From: ${source}
 To: ${destination}
@@ -77,27 +110,37 @@ Phone: ${phone}
             onChange={(e) => setPhone(e.target.value)}
           />
 
-          <select onChange={(e) => setSource(e.target.value)}>
+          <select
+  onChange={(e) => {
+    setSource(e.target.value);
+    fetchDistance(e.target.value, destination);
+  }}>
             <option value="">Select Source</option>
             {cities.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
 
-          <select onChange={(e) => setDestination(e.target.value)}>
+          <select
+  onChange={(e) => {
+    setDestination(e.target.value);
+    fetchDistance(source, e.target.value);
+  }}>
             <option value="">Select Destination</option>
             {cities.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
 
-          <input
-            type="number"
-            placeholder="Distance (KM)"
-            onChange={(e) => setKm(e.target.value)}
-          />
+          {loadingDistance && <p>Calculating distance…</p>}
 
-          <h3>Estimated Fare: ₹{fare} (₹2/km)</h3>
+{distanceKm && (
+  <>
+    <p>Distance: {distanceKm} km</p>
+    <h3>Estimated Fare: ₹{fare} (₹2/km)</h3>
+  </>
+)}
+
 
           <button onClick={submitBooking}>Book via WhatsApp</button>
         </div>
@@ -135,3 +178,4 @@ Phone: ${phone}
     </div>
   );
 }
+
