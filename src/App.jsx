@@ -2,65 +2,136 @@ import { useState } from "react";
 import logo from "./assets/logo.png";
 
 export default function App() {
-  const [lang, setLang] = useState("en");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [source, setSource] = useState("");
+  const [destination, setDestination] = useState("");
   const [km, setKm] = useState("");
+
+  const cities = [
+    "Rewa","Mangawan","Gangev","Garh","Katra","Sohagi","Chakghat","Teonthar",
+    "Badagaon","Deeh","Sonauri","Kakaraha","Mauganj","Naigarhi","Shivrajpur",
+    "Chilla","Chandpur","Naudhiya","Janeh","Sankargarh","Naribari","Jari",
+    "Gauhaniya","Ghoorpur","Naini","Prayagraj","Satna","Sidhi","Singrauli",
+    "Bhopal","Indore"
+  ];
 
   const fare = km ? km * 2 : 0;
 
-  const cities = [
-    "Mangawan","Gangev","Garh","Katra","Sohagi","Chakghat","Mauganj","Naigarhi",
-    "Teonthar","Chilla","Chandpur","Naudhiya","Janeh","Sankargarh","Naribari",
-    "Jari","Gauhaniya","Ghoorpur","Naini","Prayagraj"
-  ];
+  const submitBooking = () => {
+    if (name.length < 3 || !/^[a-zA-Z ]+$/.test(name)) {
+      alert("Please enter a valid name (min 3 letters)");
+      return;
+    }
+    if (!/^[0-9]{10}$/.test(phone)) {
+      alert("Please enter a valid 10-digit phone number");
+      return;
+    }
+    if (!source || !destination || !km) {
+      alert("Please fill all booking details");
+      return;
+    }
+
+    const message = `
+Hello Ralhi Travels,
+I want to book a Luxury Bus.
+
+From: ${source}
+To: ${destination}
+Distance: ${km} km
+Estimated Fare: ₹${fare}
+
+Name: ${name}
+Phone: ${phone}
+    `;
+
+    window.open(
+      `https://wa.me/918839404484?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
+  };
 
   return (
     <div>
-      <header style={{background:"#0f172a",color:"#fff",padding:"15px"}}>
-        <img src={logo} alt="Ralhi Travels" height="50" />
-        <button onClick={()=>setLang(lang==="en"?"hi":"en")} style={{width:"120px",marginTop:"10px"}}>
-          {lang==="en"?"हिंदी":"English"}
-        </button>
-      </header>
+      {/* HEADER */}
+      <div className="section" style={{ background: "#0f172a", color: "#fff" }}>
+        <img src={logo} alt="Ralhi Travels" height="55" />
+        <h2>Welcome to Ralhi Travels</h2>
+        <h1>Luxury bus services across Madhya Pradesh & Uttar Pradesh</h1>
+      </div>
 
-      <section style={{padding:"30px",textAlign:"center"}}>
-        <h1>{lang==="en"?"Luxury Bus Services MP & UP":"एमपी और यूपी में लक्ज़री बस सेवा"}</h1>
-        <p>{lang==="en"?"Standard Fare ₹2 per KM":"मानक किराया ₹2 प्रति किलोमीटर"}</p>
-        <a href="tel:8839404484"><button>📞 Call Now</button></a>
-        <a href="https://wa.me/918839404484"><button style={{background:"green",marginTop:"10px"}}>💬 WhatsApp</button></a>
-      </section>
+      {/* BOOKING FORM */}
+      <div className="section">
+        <div className="card">
+          <h2>Online Booking</h2>
 
-      <section style={{padding:"30px"}}>
-        <h2>{lang==="en"?"Auto Fare Calculator":"ऑटो किराया कैलकुलेटर"}</h2>
-        <input type="number" placeholder="Enter KM" onChange={e=>setKm(e.target.value)} />
-        <h3>{lang==="en"?"Estimated Fare":"अनुमानित किराया"}: ₹{fare}</h3>
-      </section>
+          <input
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-      <section style={{padding:"30px",background:"#e5e7eb"}}>
-        <h2>{lang==="en"?"Online Booking":"ऑनलाइन बुकिंग"}</h2>
-        <input placeholder="Name" />
-        <input placeholder="Phone" />
-        <select>{cities.map(c=><option key={c}>{c}</option>)}</select>
-        <input placeholder="Destination" />
-        <button>Submit Booking</button>
-      </section>
+          <input
+            placeholder="Phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
 
-      <section style={{padding:"30px"}}>
-        <h2>Service Locations</h2>
-        <p>{cities.join(", ")}</p>
-      </section>
+          <select onChange={(e) => setSource(e.target.value)}>
+            <option value="">Select Source</option>
+            {cities.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
 
-      <section style={{padding:"30px"}}>
+          <select onChange={(e) => setDestination(e.target.value)}>
+            <option value="">Select Destination</option>
+            {cities.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            placeholder="Distance (KM)"
+            onChange={(e) => setKm(e.target.value)}
+          />
+
+          <h3>Estimated Fare: ₹{fare} (₹2/km)</h3>
+
+          <button onClick={submitBooking}>Book via WhatsApp</button>
+        </div>
+      </div>
+
+      {/* MAP */}
+      <div className="section">
+        <h2>Our Service Area</h2>
         <iframe
-          title="Google Map"
+          title="map"
           src="https://www.google.com/maps?q=Rewa%20Madhya%20Pradesh&output=embed"
           width="100%"
           height="350"
+          style={{ borderRadius: "10px" }}
         ></iframe>
-      </section>
+      </div>
 
-      <footer style={{background:"#0f172a",color:"#fff",padding:"15px",textAlign:"center"}}>
+      {/* FOOTER */}
+      <div
+        className="section"
+        style={{ background: "#0f172a", color: "#fff", textAlign: "center" }}
+      >
         © {new Date().getFullYear()} Ralhi Travels | Since 1999
-      </footer>
+      </div>
+
+      {/* STICKY BUTTONS */}
+      <div className="sticky-buttons">
+        <a href="tel:8839404484">
+          <button>📞 Call</button>
+        </a>
+        <a href="https://wa.me/918839404484">
+          <button style={{ background: "green" }}>💬 WhatsApp</button>
+        </a>
+      </div>
     </div>
   );
 }
